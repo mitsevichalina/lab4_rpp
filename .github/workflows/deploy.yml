@@ -7,8 +7,6 @@ on:
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 jobs:
   deploy:
@@ -20,36 +18,31 @@ jobs:
       with:
         fetch-depth: 0
         
-    - name: Get all releases
-      id: get_releases
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const { data: releases } = await github.rest.repos.listReleases({
-            owner: context.repo.owner,
-            repo: context.repo.repo
-          });
-          
-          const versionList = releases.map(release => `v${release.tag_name}`);
-          core.setOutput('versions', JSON.stringify(versionList));
-          
     - name: Create build structure
       run: |
+        # Создаем временную папку для сборки
         mkdir -p _site
-        cp -r ./* _site/
         
-        # Создаем версионную директорию
+        # Копируем ВСЕ файлы в _site (кроме самого _site)
+        find . -maxdepth 1 -not -name '.' -not -name '_site' -exec cp -r {} _site/ \;
+        
+        # Создаем версионную папку внутри _site
         mkdir -p _site/v${{ github.event.release.tag_name }}
-        cp -r ./* _site/v${{ github.event.release.tag_name }}/
         
-        # Очищаем от служебных файлов
+        # Копируем файлы в версионную папку
+        find . -maxdepth 1 -not -name '.' -not -name '_site' -exec cp -r {} _site/v${{ github.event.release.tag_name }}/ \;
+        
+        # Удаляем служебные файлы из копирования
         rm -rf _site/.github
         rm -rf _site/.git
         rm -rf _site/v${{ github.event.release.tag_name }}/.github
         rm -rf _site/v${{ github.event.release.tag_name }}/.git
         
-        # Сохраняем список всех версий
-        echo '${{ steps.get_releases.outputs.versions }}' > _site/versions.json
+        # Показываем что получилось
+        echo "Структура _site:"
+        ls -la _site/
+        echo "Структура версионной папки:"
+        ls -la _site/v${{ github.event.release.tag_name }}/
         
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v4
