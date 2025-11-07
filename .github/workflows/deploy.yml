@@ -1,52 +1,27 @@
-name: Deploy to GitHub Pages
+name: deploy on release
 
 on:
   release:
     types: [published]
-  workflow_dispatch:
-
-permissions:
-  contents: write
 
 jobs:
-  deploy:
+  build-and-upload:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout repository
+    - name: Load repository
       uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        
-    - name: Create build structure
+
+    - name: Prepare site content
       run: |
-        # Создаем временную папку для сборки
-        mkdir -p _site
-        
-        # Копируем ВСЕ файлы в _site (кроме самого _site)
-        find . -maxdepth 1 -not -name '.' -not -name '_site' -exec cp -r {} _site/ \;
-        
-        # Создаем версионную папку внутри _site
-        mkdir -p _site/v${{ github.event.release.tag_name }}
-        
-        # Копируем файлы в версионную папку
-        find . -maxdepth 1 -not -name '.' -not -name '_site' -exec cp -r {} _site/v${{ github.event.release.tag_name }}/ \;
-        
-        # Удаляем служебные файлы из копирования
-        rm -rf _site/.github
-        rm -rf _site/.git
-        rm -rf _site/v${{ github.event.release.tag_name }}/.github
-        rm -rf _site/v${{ github.event.release.tag_name }}/.git
-        
-        # Показываем что получилось
-        echo "Структура _site:"
-        ls -la _site/
-        echo "Структура версионной папки:"
-        ls -la _site/v${{ github.event.release.tag_name }}/
-        
-    - name: Deploy to GitHub Pages
+        mkdir output
+        mkdir output/${{ github.event.release.tag_name }}
+        cp -r index.html ru en output/${{ github.event.release.tag_name }}/
+
+    - name: Upload to Pages
       uses: peaceiris/actions-gh-pages@v4
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./_site
+        publish_dir: ./output
+        publish_branch: gh-pages
         keep_files: true
