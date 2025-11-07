@@ -3,19 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Многоязычный сайт ВЕРСИЯ 2</title>
+    <title>Многоязычный сайт - Главная</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 40px; }
-        nav { margin: 20px 0; }
-        a { margin: 0 10px; text-decoration: none; color: #0366d6; }
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 40px; 
+            line-height: 1.6;
+        }
+        nav { 
+            margin: 20px 0; 
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 5px;
+        }
+        a { 
+            margin: 0 15px; 
+            text-decoration: none; 
+            color: #0366d6;
+            font-weight: bold;
+        }
+        a:hover { color: #024ea9; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .version-info { 
+            background: #e7f3ff; 
+            padding: 10px; 
+            border-radius: 5px; 
+            margin: 15px 0;
+            border-left: 4px solid #0366d6;
+        }
+        h1 { color: #333; }
     </style>
 </head>
 <body>
-    <h1>Добро пожаловать на многоязычный сайт</h1>
-    <nav>
-        <a href="ru/index.html">Русская версия</a>
-        <a href="en/index.html">English Version</a>
-    </nav>
-    <p>Это корневая страница с навигацией по языковым версиям сайта.</p>
+    <div class="container">
+        <div class="version-info">
+            <strong>Текущая версия:</strong> <span id="current-version">Главная (все версии)</span>
+        </div>
+        
+        <h1>Добро пожаловать на многоязычный сайт</h1>
+        
+        <nav>
+            <h3>🌐 Навигация по языкам:</h3>
+            <a href="ru/index.html">🇷🇺 Русская версия</a>
+            <a href="en/index.html">🇬🇧 English Version</a>
+        </nav>
+
+        <div class="version-info">
+            <h3>📚 Доступные версии релизов:</h3>
+            <div id="versions-list">
+                <p>Загрузка списка версий...</p>
+            </div>
+        </div>
+
+        <div>
+            <h3>О проекте</h3>
+            <p>Этот сайт демонстрирует возможности GitHub Pages и CI/CD для многоязычных веб-приложений.</p>
+        </div>
+    </div>
+
+    <script>
+        // Определяем текущую версию из URL
+        function detectVersion() {
+            const path = window.location.pathname;
+            const versionMatch = path.match(/v(\d+\.\d+\.\d+)/);
+            
+            const versionElement = document.getElementById('current-version');
+            if (versionMatch) {
+                versionElement.textContent = versionMatch[0];
+                versionElement.style.color = '#0366d6';
+            } else {
+                versionElement.textContent = 'Главная страница (все версии)';
+                versionElement.style.color = '#28a745';
+            }
+        }
+
+        // Простой список версий (можно расширить динамической загрузкой)
+        function loadVersions() {
+            const versions = ['v1.0.0', 'v1.0.1', 'v1.0.2'];
+            const container = document.getElementById('versions-list');
+            
+            if (container) {
+                container.innerHTML = versions.map(version => 
+                    `<a href="./${version}/" style="display: block; margin: 8px 0; padding: 8px; background: #0366d6; color: white; border-radius: 4px; text-decoration: none;">
+                     🚀 ${version}
+                    </a>`
+                ).join('');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            detectVersion();
+            loadVersions();
+        });
+    </script>
 </body>
-</html>ф
+</html>

@@ -1,41 +1,56 @@
-name: Deploy on Release
+name: Deploy to GitHub Pages
 
 on:
   release:
     types: [published]
-  workflow_dispatch:
+  workflow_dispatch:  # Разрешает ручной запуск
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     
     steps:
-    - name: Checkout
+    - name: Checkout repository
       uses: actions/checkout@v4
-
-    - name: Setup Pages
-      uses: actions/configure-pages@v3
-
-    - name: Prepare content
-      run: |
-        mkdir -p dist
-        mkdir -p dist/${{ github.event.release.tag_name }}
-        cp -r index.html ru en dist/${{ github.event.release.tag_name }}/
-        cp index.html dist/  # Копируем главную страницу в корень
-
-    - name: Upload artifact
-      uses: actions/upload-pages-artifact@v2
       with:
-        path: ./dist
+        fetch-depth: 0  # Полная история коммитов
+
+    - name: Debug file structure
+      run: |
+        echo "=== File structure in repository ==="
+        find . -name "*.html" | sort
+        echo "=== Root directory contents ==="
+        ls -la
+
+    - name: Create deployment structure
+      run: |
+        # Создаем папку для сборки
+        mkdir -p _site
+        
+        # Копируем файлы в корень _site (актуальная версия)
+        cp -r *.html ru en _site/
+        
+        # Создаем версионную папку
+        mkdir -p _site/v${{ github.event.release.tag_name }}
+        cp -r *.html ru en _site/v${{ github.event.release.tag_name }}/
+        
+        # Создаем файл с информацией о версии
+        echo "Version: ${{ github.event.release.tag_name }}" > _site/version.txt
+        echo "Build date: $(date)" >> _site/version.txt
+        
+        echo "=== Deployment structure created ==="
+        find _site -type f | sort
 
     - name: Deploy to GitHub Pages
-      id: deployment
-      uses: actions/deploy-pages@v2
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./_site
+        publish_branch: gh-pages
+        keep_files: true  # Сохраняет предыдущие версии
+        force_orphan: false
+        user_name: 'github-actions[bot]'
+        user_email: 'github-actions[bot]@users.noreply.github.com'

@@ -5,18 +5,102 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>English Version</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 40px; }
-        nav { margin: 20px 0; }
-        a { margin: 0 10px; text-decoration: none; color: #0366d6; }
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 40px; 
+            line-height: 1.6;
+        }
+        nav { 
+            margin: 20px 0; 
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 5px;
+        }
+        a { 
+            margin: 0 15px; 
+            text-decoration: none; 
+            color: #0366d6;
+            font-weight: bold;
+        }
+        a:hover { color: #024ea9; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .version-info { 
+            background: #e7f3ff; 
+            padding: 10px; 
+            border-radius: 5px; 
+            margin: 15px 0;
+            border-left: 4px solid #0366d6;
+        }
+        h1 { color: #333; }
     </style>
 </head>
 <body>
-    <h1>Welcome to English Version</h1>
-    <nav>
-        <a href="../index.html">Home</a>
-        <a href="../ru/index.html">Русская версия</a>
-    </nav>
-    <p>This is English version of our web application.</p>
-</body>
+    <div class="container">
+        <div class="version-info">
+            <strong>Current Version:</strong> <span id="current-version">Loading...</span>
+        </div>
+        
+        <h1>Welcome to English Version</h1>
+        
+        <nav>
+            <h3>🌐 Navigation:</h3>
+            <a href="../index.html">🏠 Home Page</a>
+            <a href="../ru/index.html">🇷🇺 Russian Version</a>
+        </nav>
 
+        <div>
+            <h3>About Us</h3>
+            <p>This is English version of our web application built with modern technologies.</p>
+            
+            <h4>Features:</h4>
+            <ul>
+                <li>Full English language support</li>
+                <li>Responsive design</li>
+                <li>Fast loading</li>
+                <li>Cross-browser compatibility</li>
+            </ul>
+        </div>
+
+        <div class="version-info">
+            <h3>📚 Available Versions:</h3>
+            <div id="versions-list">
+                <p>Loading versions list...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function detectVersion() {
+            const path = window.location.pathname;
+            const versionMatch = path.match(/v(\d+\.\d+\.\d+)/);
+            
+            const versionElement = document.getElementById('current-version');
+            if (versionMatch) {
+                versionElement.textContent = versionMatch[0];
+                versionElement.style.color = '#0366d6';
+            } else {
+                versionElement.textContent = 'latest (current)';
+                versionElement.style.color = '#28a745';
+            }
+        }
+
+        function loadVersions() {
+            const versions = ['v1.0.0', 'v1.0.1', 'v1.0.2'];
+            const container = document.getElementById('versions-list');
+            
+            if (container) {
+                container.innerHTML = versions.map(version => 
+                    `<a href="../${version}/en/index.html" style="display: block; margin: 8px 0; padding: 8px; background: #0366d6; color: white; border-radius: 4px; text-decoration: none;">
+                     🚀 ${version}
+                    </a>`
+                ).join('');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            detectVersion();
+            loadVersions();
+        });
+    </script>
+</body>
 </html>
