@@ -6,20 +6,10 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
+  contents: write
 
 jobs:
   deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    
     runs-on: ubuntu-latest
     
     steps:
@@ -28,22 +18,30 @@ jobs:
       with:
         fetch-depth: 0
         
-    - name: Setup Pages
-      uses: actions/configure-pages@v4
-      
-    - name: Create version directory
+    - name: Create build structure
       run: |
-        mkdir -p ./release/v${{ github.event.release.tag_name }}
-        cp -r ./* ./release/v${{ github.event.release.tag_name }}/
-        # Исключаем ненужные файлы из копирования
-        rm -rf ./release/v${{ github.event.release.tag_name }}/.github
-        rm -rf ./release/v${{ github.event.release.tag_name }}/.git
+        # Создаем основную структуру сайта
+        mkdir -p _site
+        cp -r ./* _site/
         
-    - name: Upload artifact
-      uses: actions/upload-pages-artifact@v3
-      with:
-        path: ./release
+        # Создаем версионную директорию для текущего релиза
+        mkdir -p _site/v${{ github.event.release.tag_name }}
+        cp -r ./* _site/v${{ github.event.release.tag_name }}/
+        
+        # Очищаем от служебных файлов
+        rm -rf _site/.github
+        rm -rf _site/.git
+        rm -rf _site/v${{ github.event.release.tag_name }}/.github
+        rm -rf _site/v${{ github.event.release.tag_name }}/.git
+        
+        # Проверяем созданную структуру
+        ls -la _site/
+        echo "Version directory: v${{ github.event.release.tag_name }}"
         
     - name: Deploy to GitHub Pages
-      id: deployment
-      uses: actions/deploy-pages@v4
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./_site
+        keep_files: true
+        force_orphan: false
