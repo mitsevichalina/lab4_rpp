@@ -1,29 +1,41 @@
-name: deploy on release
+name: Deploy on Release
 
 on:
   release:
     types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
 
 jobs:
-  build-and-upload:
+  deploy:
     runs-on: ubuntu-latest
-
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
     steps:
-    - name: Load repository
+    - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Prepare site content
+    - name: Setup Pages
+      uses: actions/configure-pages@v3
+
+    - name: Prepare content
       run: |
-        mkdir output
-        mkdir output/${{ github.event.release.tag_name }}
-        cp -r index.html ru en output/${{ github.event.release.tag_name }}/
+        mkdir -p dist
+        mkdir -p dist/${{ github.event.release.tag_name }}
+        cp -r index.html ru en dist/${{ github.event.release.tag_name }}/
+        cp index.html dist/  # Копируем главную страницу в корень
 
-    - name: Upload to Pages
-      uses: peaceiris/actions-gh-pages@v4
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v2
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./output
-        publish_branch: gh-pages
-        keep_files: true
+        path: ./dist
 
-        
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v2
