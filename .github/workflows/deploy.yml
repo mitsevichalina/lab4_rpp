@@ -7,35 +7,58 @@ on:
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     
     steps:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Setup Pages
-      uses: actions/configure-pages@v3
-
-    - name: Prepare content
+    - name: Debug current structure
       run: |
-        mkdir -p dist
-        mkdir -p dist/${{ github.event.release.tag_name }}
-        cp -r index.html ru en dist/${{ github.event.release.tag_name }}/
-        cp index.html dist/  # Копируем главную страницу в корень
+        echo "=== Текущая структура репозитория ==="
+        find . -name "*.html" | head -20
+        echo "=== Файлы в корне ==="
+        ls -la
 
-    - name: Upload artifact
-      uses: actions/upload-pages-artifact@v2
-      with:
-        path: ./dist
+    - name: Create deployment structure
+      run: |
+        # Создаем временную папку для деплоя
+        mkdir -p deploy
+        
+        # Создаем версионную папку
+        mkdir -p deploy/v${{ github.event.release.tag_name }}
+        
+        # Копируем ВСЕ нужные файлы
+        cp -r *.html ru en deploy/v${{ github.event.release.tag_name }}/
+        
+        # Также создаем корневую навигацию
+        cat > deploy/index.html << 'EOF'
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Lab4 - Все версии</title>
+            <meta charset="UTF-8">
+        </head>
+        <body>
+            <h1>Доступные версии сайта:</h1>
+            <ul>
+                <li><a href="./v1.0.1/">Версия v1.0.1</a></li>
+            </ul>
+        </body>
+        </html>
+        EOF
+        
+        echo "=== Структура deploy папки ==="
+        find deploy -type f | sort
 
     - name: Deploy to GitHub Pages
-      id: deployment
-      uses: actions/deploy-pages@v2
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./deploy
+        publish_branch: gh-pages
+        keep_files: true
+        force_orphan: false
